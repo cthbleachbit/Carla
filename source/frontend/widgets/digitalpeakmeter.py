@@ -21,13 +21,12 @@
 
 from math import sqrt
 
-from PyQt5.QtCore import qCritical, Qt, QTimer, QSize
+from PyQt5.QtCore import qCritical, Qt, QTimer, QSize, QPoint, QRect
 from PyQt5.QtGui import QColor, QLinearGradient, QPainter, QPen, QPixmap
 from PyQt5.QtWidgets import QWidget
 
 # ------------------------------------------------------------------------------------------------------------
 # Widget Class
-
 class DigitalPeakMeter(QWidget):
     # enum Color
     COLOR_GREEN = 1
@@ -296,6 +295,13 @@ class DigitalPeakMeter(QWidget):
         return QSize(self.width(), self.height())
 
     # --------------------------------------------------------------------------------------------------------
+    # Dirty Hacks
+    def __drawLineWrapper(self, painter: QPainter, x1, y1, x2, y2):
+        painter.drawLine(int(x1), int(y1), int(x2), int(y2))
+
+    def __drawRectWrapper(self, painter: QPainter, x1, y1, x2, y2):
+        painter.drawRect(int(x1), int(y1), int(x2), int(y2))
+
 
     def drawCalf(self, event):
         painter = QPainter(self)
@@ -305,7 +311,7 @@ class DigitalPeakMeter(QWidget):
         if self.fChannelCount == 0:
             painter.setPen(QPen(Qt.black, 2))
             painter.setBrush(Qt.black)
-            painter.drawRect(0, 0, self.width(), self.height())
+            self.__drawRectWrapper(painter, 0, 0, self.width(), self.height())
             return
 
         for i in range(self.fChannelCount):
@@ -334,7 +340,7 @@ class DigitalPeakMeter(QWidget):
         # draw background
         painter.setPen(QPen(self.fMeterBackground, 2))
         painter.setBrush(self.fMeterBackground)
-        painter.drawRect(0, 0, width, height)
+        self.__drawRectWrapper(painter, 0, 0, width, height)
 
         if self.fChannelCount == 0:
             return
@@ -362,9 +368,9 @@ class DigitalPeakMeter(QWidget):
             if level == 0.0:
                 pass
             elif self.fMeterOrientation == self.HORIZONTAL:
-                painter.drawRect(0, meterPos, int(sqrt(level) * float(width)), meterSize)
+                self.__drawRectWrapper(painter, 0, meterPos, int(sqrt(level) * float(width)), meterSize)
             elif self.fMeterOrientation == self.VERTICAL:
-                painter.drawRect(meterPos, height - int(sqrt(level) * float(height)), meterSize, height)
+                self.__drawRectWrapper(painter, meterPos, height - int(sqrt(level) * float(height)), meterSize, height)
 
             meterPos += meterSize+meterPad
 
@@ -379,32 +385,32 @@ class DigitalPeakMeter(QWidget):
 
             if self.fMeterStyle == self.STYLE_OPENAV:
                 painter.setPen(QColor(37, 37, 37, 100))
-                painter.drawLine(lsmall * 0.25, 2, lsmall * 0.25, lfull-2.0)
-                painter.drawLine(lsmall * 0.50, 2, lsmall * 0.50, lfull-2.0)
-                painter.drawLine(lsmall * 0.75, 2, lsmall * 0.75, lfull-2.0)
+                self.__drawLineWrapper(painter, lsmall * 0.25, 2, lsmall * 0.25, lfull-2.0)
+                self.__drawLineWrapper(painter, lsmall * 0.50, 2, lsmall * 0.50, lfull-2.0)
+                self.__drawLineWrapper(painter, lsmall * 0.75, 2, lsmall * 0.75, lfull-2.0)
 
                 if self.fChannelCount > 1:
-                    painter.drawLine(1, lfull/2-1, lsmall-1, lfull/2-1)
+                    self.__drawLineWrapper(painter, 1, lfull/2-1, lsmall-1, lfull/2-1)
 
             else:
                 # Base
                 painter.setBrush(Qt.black)
                 painter.setPen(QPen(self.fMeterColorBaseAlt, 1))
-                painter.drawLine(lsmall * 0.25, 2, lsmall * 0.25, lfull-2.0)
-                painter.drawLine(lsmall * 0.50, 2, lsmall * 0.50, lfull-2.0)
+                self.__drawLineWrapper(painter, lsmall * 0.25, 2, lsmall * 0.25, lfull-2.0)
+                self.__drawLineWrapper(painter, lsmall * 0.50, 2, lsmall * 0.50, lfull-2.0)
 
                 # Yellow
                 painter.setPen(QColor(110, 110, 15, 100))
-                painter.drawLine(lsmall * 0.70, 2, lsmall * 0.70, lfull-2.0)
-                painter.drawLine(lsmall * 0.83, 2, lsmall * 0.83, lfull-2.0)
+                self.__drawLineWrapper(painter, lsmall * 0.70, 2, lsmall * 0.70, lfull-2.0)
+                self.__drawLineWrapper(painter, lsmall * 0.83, 2, lsmall * 0.83, lfull-2.0)
 
                 # Orange
                 painter.setPen(QColor(180, 110, 15, 100))
-                painter.drawLine(lsmall * 0.90, 2, lsmall * 0.90, lfull-2.0)
+                self.__drawLineWrapper(painter, lsmall * 0.90, 2, lsmall * 0.90, lfull-2.0)
 
                 # Red
                 painter.setPen(QColor(110, 15, 15, 100))
-                painter.drawLine(lsmall * 0.96, 2, lsmall * 0.96, lfull-2.0)
+                self.__drawLineWrapper(painter, lsmall * 0.96, 2, lsmall * 0.96, lfull-2.0)
 
         elif self.fMeterOrientation == self.VERTICAL:
             # Variables
@@ -413,32 +419,32 @@ class DigitalPeakMeter(QWidget):
 
             if self.fMeterStyle == self.STYLE_OPENAV:
                 painter.setPen(QColor(37, 37, 37, 100))
-                painter.drawLine(2, lsmall - (lsmall * 0.25), lfull-2.0, lsmall - (lsmall * 0.25))
-                painter.drawLine(2, lsmall - (lsmall * 0.50), lfull-2.0, lsmall - (lsmall * 0.50))
-                painter.drawLine(2, lsmall - (lsmall * 0.75), lfull-2.0, lsmall - (lsmall * 0.75))
+                self.__drawLineWrapper(painter, 2, lsmall - (lsmall * 0.25), lfull-2.0, lsmall - (lsmall * 0.25))
+                self.__drawLineWrapper(painter, 2, lsmall - (lsmall * 0.50), lfull-2.0, lsmall - (lsmall * 0.50))
+                self.__drawLineWrapper(painter, 2, lsmall - (lsmall * 0.75), lfull-2.0, lsmall - (lsmall * 0.75))
 
                 if self.fChannelCount > 1:
-                    painter.drawLine(lfull/2-1, 1, lfull/2-1, lsmall-1)
+                    self.__drawLineWrapper(painter, lfull/2-1, 1, lfull/2-1, lsmall-1)
 
             else:
                 # Base
                 painter.setBrush(Qt.black)
                 painter.setPen(QPen(self.fMeterColorBaseAlt, 1))
-                painter.drawLine(2, lsmall - (lsmall * 0.25), lfull-2.0, lsmall - (lsmall * 0.25))
-                painter.drawLine(2, lsmall - (lsmall * 0.50), lfull-2.0, lsmall - (lsmall * 0.50))
+                self.__drawLineWrapper(painter, 2, lsmall - (lsmall * 0.25), lfull-2.0, lsmall - (lsmall * 0.25))
+                self.__drawLineWrapper(painter, 2, lsmall - (lsmall * 0.50), lfull-2.0, lsmall - (lsmall * 0.50))
 
                 # Yellow
                 painter.setPen(QColor(110, 110, 15, 100))
-                painter.drawLine(2, lsmall - (lsmall * 0.70), lfull-2.0, lsmall - (lsmall * 0.70))
-                painter.drawLine(2, lsmall - (lsmall * 0.82), lfull-2.0, lsmall - (lsmall * 0.82))
+                self.__drawLineWrapper(painter, 2, lsmall - (lsmall * 0.70), lfull-2.0, lsmall - (lsmall * 0.70))
+                self.__drawLineWrapper(painter, 2, lsmall - (lsmall * 0.82), lfull-2.0, lsmall - (lsmall * 0.82))
 
                 # Orange
                 painter.setPen(QColor(180, 110, 15, 100))
-                painter.drawLine(2, lsmall - (lsmall * 0.90), lfull-2.0, lsmall - (lsmall * 0.90))
+                self.__drawLineWrapper(painter, 2, lsmall - (lsmall * 0.90), lfull-2.0, lsmall - (lsmall * 0.90))
 
                 # Red
                 painter.setPen(QColor(110, 15, 15, 100))
-                painter.drawLine(2, lsmall - (lsmall * 0.96), lfull-2.0, lsmall - (lsmall * 0.96))
+                self.__drawLineWrapper(painter, 2, lsmall - (lsmall * 0.96), lfull-2.0, lsmall - (lsmall * 0.96))
 
     # --------------------------------------------------------------------------------------------------------
 

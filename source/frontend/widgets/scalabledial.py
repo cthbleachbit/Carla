@@ -116,10 +116,15 @@ class ScalableDial(QDial):
 
         # Fake internal value, custom precision
         QDial.setMinimum(self, 0)
-        QDial.setMaximum(self, self.fPrecision)
+        QDial.setMaximum(self, int(self.fPrecision))
         QDial.setValue(self, 0)
 
         self.valueChanged.connect(self.slot_valueChanged)
+
+    # -----------------------------------------------------------------------------------------------------
+    # Dirty Hacks
+    def __drawArcWrapper(self, painter, x1, y1, x2, y2, startAngle, spanAngle):
+        painter.drawArc(int(x1), int(y1), int(x2), int(y2), int(startAngle), int(spanAngle))
 
     def getIndex(self):
         return self.fIndex
@@ -250,7 +255,7 @@ class ScalableDial(QDial):
     def setPrecision(self, value, isInteger):
         self.fPrecision = value
         self.fIsInteger = isInteger
-        QDial.setMaximum(self, value)
+        QDial.setMaximum(self, int(value))
 
     def setMinimum(self, value):
         self.fMinimum = value
@@ -437,7 +442,7 @@ class ScalableDial(QDial):
                     painter.setBrush(colorBlue)
                     painter.setPen(QPen(colorBlue, 3))
 
-                painter.drawArc(4.0, 4.0, 26.0, 26.0, startAngle, spanAngle)
+                self.__drawArcWrapper(painter, 4.0, 4.0, 26.0, 26.0, startAngle, spanAngle)
 
             # Custom knobs (L and R)
             elif self.fCustomPaintMode in (self.CUSTOM_PAINT_MODE_CARLA_L, self.CUSTOM_PAINT_MODE_CARLA_R):
@@ -466,7 +471,7 @@ class ScalableDial(QDial):
                     spanAngle  = 255.0*16*(1.0-normValue)
 
                 painter.setPen(QPen(color, 2.5))
-                painter.drawArc(3.5, 3.5, 22.0, 22.0, startAngle, spanAngle)
+                self.__drawArcWrapper(painter, 3.5, 3.5, 22.0, 22.0, startAngle, spanAngle)
 
             # Custom knobs (Color)
             elif self.fCustomPaintMode == self.CUSTOM_PAINT_MODE_COLOR:
@@ -491,7 +496,7 @@ class ScalableDial(QDial):
 
                 painter.setBrush(color)
                 painter.setPen(QPen(color, 3))
-                painter.drawArc(4.0, 4.8, 26.0, 26.0, startAngle, spanAngle)
+                self.__drawArcWrapper(painter, 4.0, 4.8, 26.0, 26.0, startAngle, spanAngle)
 
             # Custom knobs (Zita)
             elif self.fCustomPaintMode == self.CUSTOM_PAINT_MODE_ZITA:
